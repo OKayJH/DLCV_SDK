@@ -118,6 +118,80 @@ repo sync -c -j4
 repo start my-feature --all
 ```
 
+## 开发者工作流：本地修改如何更新到仓库
+
+### 单仓库修改（以 kernel-6.1 为例）
+
+```bash
+cd ~/dlcv_rk3576_sdk/kernel-6.1
+
+# 1. 创建本地开发分支（repo sync 后默认处于 detached HEAD）
+git checkout -b dev-rk3576-usb-fix
+
+# 2. 修改代码并提交
+git add drivers/usb/dwc3/
+git commit -m "fix(dwc3): fix USB3.0 host mode on TaishanPi-3"
+
+# 3. 推送到远程（dlcv/kernel 的 rk3576 分支）
+git push dlcv dev-rk3576-usb-fix:rk3576
+```
+
+### 多仓库同时修改
+
+```bash
+cd ~/dlcv_rk3576_sdk
+
+# 1. 为所有仓库创建统一的 topic 分支
+repo start rk3576-feature-xxx --all
+
+# 2. 修改代码后，批量查看状态
+repo status
+
+# 3. 在各仓库分别 commit，然后批量推送
+repo forall -c 'git push $(git remote | head -1) $(git branch --show-current):rk3576'
+```
+
+### 本地修改与 `repo sync` 冲突处理
+
+```bash
+# 方式 A：暂存后同步，再恢复
+repo forall -c 'git stash'
+repo sync -c -j4
+repo forall -c 'git stash pop'
+
+# 方式 B：强制丢弃本地修改，完全以 manifest 为准
+repo forall -c 'git reset --hard HEAD && git clean -fd'
+repo sync -c -j4
+
+# 方式 C：rebase 到最新 manifest 版本
+repo sync -c -j4 --rebase
+```
+
+### 将修改同步更新到 Manifest（Release 流程）
+
+当各子仓库修改已推送并合入后，更新清单仓库使所有开发者同步到最新代码：
+
+```bash
+# 1. 生成当前工作区的完整锁定清单（含实际 commit hash）
+cd ~/dlcv_rk3576_sdk
+repo manifest -r -o locked_manifest.xml
+
+# 2. 进入清单仓库工作区
+cd .repo/manifests
+
+# 3. 更新 rk3576_linux_release.xml 中对应项目的 revision
+
+# 4. 提交并推送清单仓库
+git add rk3576_linux_release.xml
+git commit -m "release: bump kernel-6.1/u-boot/rkbin for RK3576 v1.1"
+git push origin linux
+
+# 5. 用户端执行同步
+repo sync -c -j4
+```
+
+---
+
 ## 版本管理
 
 若需发布新版本，请按以下流程操作：
