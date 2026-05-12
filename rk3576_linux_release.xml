@@ -45,13 +45,10 @@
   </project>
 
   <!-- ========== Rootfs / Distro ========== -->
-  <project name="debian11"
-           revision="ba1602b633cf4b43705000e5e28a4336b5c74fc2"
-           dest-branch="debian11" clone-depth="1"/>
-
-  <project name="debian12"
+  <project name="debian" path="debian12"
+           remote="dlcv"
            revision="54ce86d30a04471d5db082258c37d66798ff417d"
-           dest-branch="debian12" clone-depth="1"/>
+           dest-branch="bookworm" clone-depth="1"/>
 
   <project name="ubuntu20.04"
            revision="bc9d5bc77d4a3160385fd5204658ea03c0994001"
