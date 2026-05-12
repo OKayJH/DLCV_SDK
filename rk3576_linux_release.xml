@@ -45,7 +45,7 @@
   </project>
 
   <!-- ========== Rootfs / Distro ========== -->
-  <project name="debian" path="debian12"
+  <project name="debian12"
            remote="dlcv"
            revision="54ce86d30a04471d5db082258c37d66798ff417d"
            dest-branch="bookworm" clone-depth="1"/>
