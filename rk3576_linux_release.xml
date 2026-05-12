@@ -48,7 +48,7 @@
   <project name="debian12"
            remote="dlcv"
            revision="54ce86d30a04471d5db082258c37d66798ff417d"
-           dest-branch="bookworm" clone-depth="1"/>
+           dest-branch="RK3576" clone-depth="1"/>
 
   <project name="ubuntu20.04"
            revision="bc9d5bc77d4a3160385fd5204658ea03c0994001"

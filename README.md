@@ -87,7 +87,7 @@ repo sync -c -j4
 | `kernel-6.1` | `dl-cv/kernel` | `rk3576` | Linux 6.1 内核（RK3576 定制） |
 | `u-boot` | `LubanCat/u-boot` | `rk3576` | U-Boot 引导程序 |
 | `rkbin` | `LubanCat/rkbin` | `rk3576` | Rockchip 固件二进制 |
-| `debian12` | `dl-cv/debian12` | `bookworm` | Debian 12 根文件系统（DLCV 定制） |
+| `debian12` | `dl-cv/debian12` | `RK3576` | Debian 12 根文件系统（DLCV 定制） |
 | `ubuntu20.04` | `LubanCat/ubuntu20.04` | `ubuntu20.04` | Ubuntu 20.04 根文件系统 |
 | `ubuntu22.04` | `LubanCat/ubuntu22.04` | `ubuntu22.04` | Ubuntu 22.04 根文件系统 |
 | `tools` | `LubanCat/tools` | `main` | 烧录与打包工具 |
