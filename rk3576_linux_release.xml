@@ -39,7 +39,7 @@
 
   <project name="kernel" path="kernel-6.1"
            remote="dlcv"
-           revision="5158156e61481293439b4a69e8634685d174b98c"
+           revision="2e95c18c080aec8da681f26990f70d161ecd3cae"
            dest-branch="rk3576" clone-depth="1">
     <linkfile src="." dest="kernel"/>
   </project>
@@ -47,7 +47,7 @@
   <!-- ========== Rootfs / Distro ========== -->
   <project name="debian12"
            remote="dlcv"
-           revision="54ce86d30a04471d5db082258c37d66798ff417d"
+           revision="018aff1fe82605912b2c951bc65fd62dc5f3e89d"
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="ubuntu20.04"
