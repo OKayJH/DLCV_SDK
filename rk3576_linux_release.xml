@@ -14,8 +14,9 @@
   <default remote="lubancat" sync-j="4"/>
 
   <!-- ========== BSP Core ========== -->
-  <project name="device_rockchip" path="device/rockchip"
-           revision="ea5af0b2e5a48cc3d225c42c717923f70b1ac03d"
+  <project name="device" path="device/rockchip"
+           remote="dlcv"
+           revision="2d6b5c67a8ce1fe620b48e905969801611d6a70c"
            dest-branch="main" clone-depth="1">
     <linkfile src="common/scripts/build.sh" dest="build.sh"/>
     <linkfile src="common/Makefile"         dest="Makefile"/>
@@ -25,7 +26,8 @@
 
   <!-- ========== Bootloader ========== -->
   <project name="u-boot"
-           revision="fad2cf0818a5846ea480ebe349f051d5edd2f110"
+           remote="dlcv"
+           revision="cf18e4157aa8f0ce0bfe418ea7434c5d2aafb1ea"
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="rkbin"
@@ -39,7 +41,7 @@
 
   <project name="kernel" path="kernel-6.1"
            remote="dlcv"
-           revision="2e95c18c080aec8da681f26990f70d161ecd3cae"
+           revision="593989c43285363ae3d4b7c84cae5f53c84ed292"
            dest-branch="rk3576" clone-depth="1">
     <linkfile src="." dest="kernel"/>
   </project>
@@ -47,7 +49,7 @@
   <!-- ========== Rootfs / Distro ========== -->
   <project name="debian12"
            remote="dlcv"
-           revision="282409d4a5a7fa9b557f88bda31e6cf5663339bc"
+           revision="e977ff4caf711e7908fb4c615bff070dcb4d7c2f"
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="ubuntu20.04"
