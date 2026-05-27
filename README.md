@@ -79,11 +79,11 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | boot | 0x00008000 | 0x00020000 | `output/firmware/boot.img` |
 | recovery | 0x00028000 | 0x00040000 | — |
 | backup | 0x00068000 | 0x00010000 | — |
-| **rootfs** | **0x00078000** | **0x01C00000** | **`output/firmware/rootfs.img`** |
-| oem | 0x01C78000 | 0x00040000 | `output/firmware/oem.img` |
-| userdata | 0x01CB8000 | 自动扩展 | `output/firmware/userdata.img` |
+| oem | 0x00078000 | 0x00040000 | `output/firmware/oem.img` |
+| userdata | 0x000B8000 | 0x00200000 | `output/firmware/userdata.img` |
+| **rootfs** | **0x002B8000** | **自动扩展** | **`output/firmware/rootfs.img`** |
 
-> 扇区大小为 512 字节。rootfs 起始地址为 **0x00078000**（24 MB 偏移），不是 0x002B8000。
+> 扇区大小为 512 字节。rootfs 起始地址为 **0x002B8000**。
 
 ### 清理
 
