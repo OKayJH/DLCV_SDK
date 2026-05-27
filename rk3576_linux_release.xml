@@ -52,13 +52,7 @@
            revision="e977ff4caf711e7908fb4c615bff070dcb4d7c2f"
            dest-branch="rk3576" clone-depth="1"/>
 
-  <project name="ubuntu20.04"
-           revision="bc9d5bc77d4a3160385fd5204658ea03c0994001"
-           dest-branch="ubuntu20.04" clone-depth="1"/>
 
-  <project name="ubuntu22.04"
-           revision="efa09935ea24792f80e52b8e35f0f9a6a44c14b7"
-           dest-branch="ubuntu22.04" clone-depth="1"/>
 
   <!-- ========== Tools ========== -->
   <project name="tools"
