@@ -36,6 +36,7 @@ make dlcvcam_rk3576_debian12_gnome_defconfig
 ### 构建根文件系统
 
 ```bash
+rm -f debian12/linaro-rk3576-gnome-rootfs.img
 ./build.sh debian
 ```
 
@@ -43,7 +44,7 @@ make dlcvcam_rk3576_debian12_gnome_defconfig
 - `debian12/linaro-rk3576-gnome-rootfs.img`
 - `output/firmware/rootfs.img`
 
-> 强制重新构建：先删除 `debian12/linaro-rk3576-gnome-rootfs.img`，再执行 `./build.sh debian`。
+> 必须先删除旧镜像，否则 `build.sh` 会直接复用缓存。
 
 ### 构建完整固件
 
