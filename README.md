@@ -203,8 +203,6 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | `u-boot` | `dl-cv/u-boot` | `rk3576` | U-Boot 引导程序（DLCV 定制） |
 | `rkbin` | `LubanCat/rkbin` | `rk3576` | Rockchip 固件二进制 |
 | `debian12` | `dl-cv/debian12` | `rk3576` | Debian 12 根文件系统（DLCV 定制） |
-| `ubuntu20.04` | `LubanCat/ubuntu20.04` | `ubuntu20.04` | Ubuntu 20.04 根文件系统 |
-| `ubuntu22.04` | `LubanCat/ubuntu22.04` | `ubuntu22.04` | Ubuntu 22.04 根文件系统 |
 | `tools` | `LubanCat/tools` | `main` | 烧录与打包工具 |
 | `prebuilts/gcc/...` | `LubanCat/gcc-arm-10.3...` | — | ARM 交叉编译工具链 |
 
