@@ -31,7 +31,8 @@
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="rkbin"
-           revision="60ce46272b85ce4f1da1d52a2797b4bc7ae681dc"
+           remote="dlcv"
+           revision="47791b4577bfabaf87c4bcba93a4c8f74e2850d6"
            dest-branch="rk3576" clone-depth="1"/>
 
   <!-- ========== Kernel ========== -->
