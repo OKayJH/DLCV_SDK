@@ -47,7 +47,7 @@
   <!-- ========== Rootfs / Distro ========== -->
   <project name="debian12"
            remote="dlcv"
-           revision="018aff1fe82605912b2c951bc65fd62dc5f3e89d"
+           revision="282409d4a5a7fa9b557f88bda31e6cf5663339bc"
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="ubuntu20.04"
