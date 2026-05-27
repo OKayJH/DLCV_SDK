@@ -17,7 +17,9 @@
   <project name="DLCV_SDK" path="DLCV_SDK"
            remote="dlcv"
            revision="linux"
-           dest-branch="linux" clone-depth="1"/>
+           dest-branch="linux" clone-depth="1">
+    <linkfile src="README.md" dest="README.md"/>
+  </project>
 
   <!-- ========== BSP Core ========== -->
   <project name="device" path="device/rockchip"
@@ -27,7 +29,6 @@
     <linkfile src="common/scripts/build.sh" dest="build.sh"/>
     <linkfile src="common/Makefile"         dest="Makefile"/>
     <linkfile src="common/scripts/rkflash.sh" dest="rkflash.sh"/>
-    <linkfile src="common/README.md"        dest="README.md"/>
   </project>
 
   <!-- ========== Bootloader ========== -->

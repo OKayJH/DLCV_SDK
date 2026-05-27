@@ -53,8 +53,37 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 ```
 
 输出：
-- `rockdev/update.img` — 完整烧录固件
+- `output/update/Image/update.img` — 完整烧录固件
 - `output/firmware/` — 各分区镜像
+
+---
+
+## 烧写固件
+
+### 方式一：烧写完整固件（推荐）
+
+使用 **RKDevTool** 或 **SD 卡升级**，直接烧写 `output/update/Image/update.img`。
+
+这是最简单可靠的方式，无需关心分区表和地址。
+
+### 方式二：分区烧写
+
+若使用 RKDevTool **分区烧写**，**必须同时勾选 `parameter.txt` 和对应分区的镜像**。`parameter.txt` 定义了 GPT 分区表，不更新会导致系统无法识别分区位置和大小，从而无法启动。
+
+#### 分区地址表
+
+| 分区 | 起始地址（扇区） | 大小（扇区） | 镜像文件 |
+|------|-----------------|-------------|---------|
+| uboot | 0x00004000 | 0x00002000 | `output/firmware/uboot.img` |
+| misc | 0x00006000 | 0x00002000 | — |
+| boot | 0x00008000 | 0x00020000 | `output/firmware/boot.img` |
+| recovery | 0x00028000 | 0x00040000 | — |
+| backup | 0x00068000 | 0x00010000 | — |
+| **rootfs** | **0x00078000** | **0x01C00000** | **`output/firmware/rootfs.img`** |
+| oem | 0x01C78000 | 0x00040000 | `output/firmware/oem.img` |
+| userdata | 0x01CB8000 | 自动扩展 | `output/firmware/userdata.img` |
+
+> 扇区大小为 512 字节。rootfs 起始地址为 **0x00078000**（24 MB 偏移），不是 0x002B8000。
 
 ### 清理
 
