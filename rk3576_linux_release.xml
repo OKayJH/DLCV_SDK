@@ -24,7 +24,7 @@
   <!-- ========== BSP Core ========== -->
   <project name="device" path="device/rockchip"
            remote="dlcv"
-           revision="e578f066916a0914aebf16b0b8182be4ddd77613"
+           revision="main"
            dest-branch="main" clone-depth="1">
     <linkfile src="common/scripts/build.sh" dest="build.sh"/>
     <linkfile src="common/Makefile"         dest="Makefile"/>
@@ -34,22 +34,22 @@
   <!-- ========== Bootloader ========== -->
   <project name="u-boot"
            remote="dlcv"
-           revision="cf18e4157aa8f0ce0bfe418ea7434c5d2aafb1ea"
+           revision="rk3576"
            dest-branch="rk3576" clone-depth="1"/>
 
   <project name="rkbin"
            remote="dlcv"
-           revision="47791b4577bfabaf87c4bcba93a4c8f74e2850d6"
+           revision="rk3576"
            dest-branch="rk3576" clone-depth="1"/>
 
   <!-- ========== Kernel ========== -->
   <project name="kernel" path="kernel-5.10"
-           revision="2b6e516c0c6407a864430b5cb4d4a01232400d6c"
+           revision="lbc-develop-5.10"
            dest-branch="lbc-develop-5.10" clone-depth="1"/>
 
   <project name="kernel" path="kernel-6.1"
            remote="dlcv"
-           revision="593989c43285363ae3d4b7c84cae5f53c84ed292"
+           revision="rk3576"
            dest-branch="rk3576" clone-depth="1">
     <linkfile src="." dest="kernel"/>
   </project>
@@ -57,14 +57,14 @@
   <!-- ========== Rootfs / Distro ========== -->
   <project name="debian12"
            remote="dlcv"
-           revision="e977ff4caf711e7908fb4c615bff070dcb4d7c2f"
+           revision="rk3576"
            dest-branch="rk3576" clone-depth="1"/>
 
 
 
   <!-- ========== Tools ========== -->
   <project name="tools"
-           revision="c27464a38afb984e5928e90371b57cd89291f288"
+           revision="main"
            dest-branch="main" clone-depth="1"/>
 
   <!-- ========== Prebuilt Toolchains ========== -->
