@@ -16,7 +16,7 @@
   <!-- ========== BSP Core ========== -->
   <project name="device" path="device/rockchip"
            remote="dlcv"
-           revision="2d6b5c67a8ce1fe620b48e905969801611d6a70c"
+           revision="e578f066916a0914aebf16b0b8182be4ddd77613"
            dest-branch="main" clone-depth="1">
     <linkfile src="common/scripts/build.sh" dest="build.sh"/>
     <linkfile src="common/Makefile"         dest="Makefile"/>
