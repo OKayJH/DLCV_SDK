@@ -10,6 +10,8 @@
 | 默认分支 | `linux` |
 | 默认清单 | `rk3576_linux_release.xml` |
 
+---
+
 ## 快速开始
 
 ### 1. 安装 Repo 工具
@@ -69,6 +71,119 @@ repo sync -c -j4
 └── .repo/
 ```
 
+---
+
+## DLCV 定制说明（相较于原版 LubanCat SDK）
+
+以下仓库已切换为 DLCV 自己的 fork，并包含硬件定制修改：
+
+### 1. `device`（原 `device_rockchip`）
+
+| 修改项 | 说明 |
+|--------|------|
+| 新增 defconfig | `dlcvcam_rk3576_debian12_gnome_defconfig`：DLCVCAM 专用配置（rk3576 + Debian 12 GNOME + 内核裁剪） |
+| 新增 defconfig | `tspi_3m_rk3576_debian_bookworm_gnome_defconfig`：TaishanPi-3M 配置 |
+
+### 2. `kernel-6.1`（`dl-cv/kernel`）
+
+| 修改项 | 说明 |
+|--------|------|
+| 设备树 | 新增 `dlcvcam-rk3576.dts` 及相关 `.dtsi`（CSI、DSI、USB、PCIe、RTC、以太网） |
+| 相机驱动 | IMX296 支持 on-board 晶振，禁用板级 MCLK（tspi-3m） |
+| 触发功能 | 移植 RK3588 trigger-dev 外部触发到 RK3576，支持 GPIO 输入触发相机 |
+| 风扇控制 | 三档 PWM 风扇曲线，适配 DLCVCAM 散热方案 |
+| 内核裁剪 | `dlcvcam_rk3576_kernel_cut.config`：裁剪不需要的驱动和子系统 |
+
+### 3. `debian12`（`dl-cv/debian12`）
+
+| 修改项 | 说明 |
+|--------|------|
+| 根文件系统定制 | 集成 DLCV 智能相机环境到构建流程 |
+| 初始化脚本 | `dlcvcam-init.sh`：基于 OTP CPU ID 设置唯一主机名和 MAC 地址 |
+| 启动修复 | 修复 7zz 解压退出码导致编译中断的问题；修复 chroot 执行 shell 问题 |
+| 用户配置 | 默认用户 `dlcv`，密码 `dlcvai`；自动登录 GNOME；VNC 预配置 |
+| 工具增强 | 预装 zsh、oh-my-zsh、btop、x11vnc、gnome-terminal |
+
+### 4. `u-boot`（`dl-cv/u-boot`）
+
+| 修改项 | 说明 |
+|--------|------|
+| 设备树 | 默认设备树改为 `rk3576-tspi`（TaishanPi-3M） |
+| 新增 DTS | `arch/arm/dts/rk3576-tspi.dts` |
+| 启动顺序 | 调整 bootcmd：优先尝试 `bootrkp`，最后 `distro_bootcmd` |
+| eMMC 时序 | 保守时序配置，解决 u-boot 读写 eMMC 报错 |
+
+---
+
+## 镜像构建步骤
+
+进入 SDK 根目录后执行：
+
+```bash
+cd ~/dlcv_rk3576_sdk
+```
+
+### 1. 加载配置
+
+```bash
+make dlcvcam_rk3576_debian12_gnome_defconfig
+```
+
+### 2. 构建内核镜像（kernel + dtb）
+
+```bash
+./build.sh kernel
+```
+
+产物：
+- `output/firmware/boot.img`
+- `kernel-6.1/arch/arm64/boot/dts/rockchip/dlcvcam-rk3576.dtb`
+
+### 3. 构建根文件系统（rootfs）
+
+```bash
+# 仅构建根文件系统
+./build.sh debian
+
+# 如果之前构建过且要强制重新构建，先删除缓存：
+# rm -f debian12/linaro-rk3576-gnome-rootfs.img
+# ./build.sh debian
+```
+
+产物：
+- `debian12/linaro-rk3576-gnome-rootfs.img`
+- `output/firmware/rootfs.img`（软链接）
+
+> **注意**：构建过程会在 chroot 中执行 apt 安装，需保证网络通畅。GNOME 版本约需 5~6GB 磁盘空间。
+
+### 4. 构建完整固件（update.img）
+
+```bash
+# 构建全部组件并打包（uboot + kernel + rootfs + firmware）
+./build.sh all
+```
+
+产物：
+- `rockdev/update.img` —— 完整烧录固件
+- `output/firmware/` —— 各分区镜像
+
+### 5. 单独清理与重编
+
+```bash
+# 清理根文件系统缓存
+rm -f debian12/linaro-rk3576-gnome-rootfs.img
+./build.sh debian
+
+# 清理全部并重新构建
+./build.sh cleanall
+./build.sh all
+
+# 仅清理 kernel
+./build.sh clean-kernel
+```
+
+---
+
 ## Manifest 说明
 
 ### 远程仓库 (remote)
@@ -82,10 +197,10 @@ repo sync -c -j4
 
 | 本地路径 | 远程仓库 | 分支 | 说明 |
 |----------|----------|------|------|
-| `device/rockchip` | `LubanCat/device_rockchip` | `main` | 构建脚本与设备配置 |
+| `device/rockchip` | `dl-cv/device` | `main` | 构建脚本与设备配置（DLCV 定制） |
 | `kernel-5.10` | `LubanCat/kernel` | `lbc-develop-5.10` | Linux 5.10 内核 |
 | `kernel-6.1` | `dl-cv/kernel` | `rk3576` | Linux 6.1 内核（RK3576 定制） |
-| `u-boot` | `LubanCat/u-boot` | `rk3576` | U-Boot 引导程序 |
+| `u-boot` | `dl-cv/u-boot` | `rk3576` | U-Boot 引导程序（DLCV 定制） |
 | `rkbin` | `LubanCat/rkbin` | `rk3576` | Rockchip 固件二进制 |
 | `debian12` | `dl-cv/debian12` | `rk3576` | Debian 12 根文件系统（DLCV 定制） |
 | `ubuntu20.04` | `LubanCat/ubuntu20.04` | `ubuntu20.04` | Ubuntu 20.04 根文件系统 |
@@ -94,6 +209,8 @@ repo sync -c -j4
 | `prebuilts/gcc/...` | `LubanCat/gcc-arm-10.3...` | — | ARM 交叉编译工具链 |
 
 > 所有项目均使用 `clone-depth="1"` 进行浅克隆，以节省时间和磁盘空间。
+
+---
 
 ## 常用 Repo 命令
 
@@ -116,6 +233,8 @@ repo sync -c -j4
 # 开始新特性开发（创建 topic 分支）
 repo start my-feature --all
 ```
+
+---
 
 ## 开发者工作流：本地修改如何更新到仓库
 
@@ -201,4 +320,5 @@ repo sync -c -j4
 4. 用户执行 `repo sync -c -j4` 即可同步到对应版本
 
 ---
+
 Maintained by [dl-cv](https://github.com/dl-cv)
