@@ -16,7 +16,7 @@
   <!-- ========== Manifest ========== -->
   <project name="DLCV_SDK" path="DLCV_SDK"
            remote="dlcv"
-           revision="f9da40369306094cff697c2c8b6dbf7f4c20e2d1"
+           revision="linux"
            dest-branch="linux" clone-depth="1"/>
 
   <!-- ========== BSP Core ========== -->
