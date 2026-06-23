@@ -56,6 +56,127 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 - `output/update/Image/update.img` — 完整烧录固件
 - `output/firmware/` — 各分区镜像
 
+> **注意**：`./build.sh all` 会先检查各组件缓存。若 kernel / debian / u-boot 等已编译且未变更，会直接复用缓存。如需强制重新编译某组件，先执行对应的 `clean` 命令。
+
+---
+
+## 智能相机环境打包文档
+
+### 环境准备
+
+确认交叉编译器与依赖：
+
+```bash
+which aarch64-linux-gnu-gcc
+# 确保预编译工具链存在：prebuilts/gcc/linux-x86/aarch64/
+```
+
+### 设备端环境打包（dlcv_env.tar.gz）
+
+固件构建时，`mk-bookworm-rootfs.sh` 会从共享目录提取 `dlcv_env.tar.gz` 并解压到 rootfs 的 `/root/dlcv`，作为预置 Python 环境。因此**构建固件前必须先完成设备端打包**。
+
+**打包步骤（在 170 设备上执行）**：
+
+```bash
+# 1. 确保 smartcam_bs 已编译安装（camos + camos-admin whl 已安装到 /root/dlcv）
+# 2. 停止服务，避免运行时文件被占用
+systemctl stop camos camos-admin
+
+# 3. 打包 /root/dlcv 目录
+cd /root
+tar -czf /tmp/dlcv_env.tar.gz \
+  --exclude='*.pyc' \
+  --exclude='__pycache__' \
+  --exclude='.cache' \
+  --exclude='*.log' \
+  dlcv
+
+ls -lh /tmp/dlcv_env.tar.gz
+```
+
+**拷贝到共享目录**：
+
+170 上 `/share` 通常未挂载，需通过 scp 传回 WSL：
+
+```bash
+# 在 WSL 上执行
+scp root@192.168.1.170:/tmp/dlcv_env.tar.gz /share/4-智能相机/0-环境安装/dlcv_env.tar.gz
+```
+
+> 构建脚本中的固定路径：`DLCV_ENV_TAR="/share/4-智能相机/0-环境安装/dlcv_env.tar.gz"`
+
+---
+
+### 完整固件编译流程
+
+**步骤 1：加载 SDK 配置**
+
+```bash
+cd /path/to/dlcv_rk3576_sdk
+make dlcvcam_rk3576_debian12_gnome_defconfig
+```
+
+**步骤 2：编译完整固件**
+
+```bash
+./build.sh all
+```
+
+编译过程包含：
+1. U-Boot 编译
+2. Kernel 编译（含设备树）
+3. Debian 12 根文件系统构建（如缓存不存在或已删除）
+4. 各分区镜像打包（boot.img、rootfs.img、oem.img、userdata.img 等）
+5. 生成 update.img（完整烧录固件）
+
+**输出路径与文件**：
+
+| 文件 | 路径 | 说明 |
+|------|------|------|
+| 完整固件 | `output/update/Image/update.img` | RKDevTool / SD 卡升级用的完整镜像 |
+| boot 分区 | `output/firmware/boot.img` | FIT 格式，含 kernel + dtb + resource |
+| rootfs 分区 | `output/firmware/rootfs.img` | Debian 12 GNOME 根文件系统 |
+| uboot 分区 | `output/firmware/uboot.img` | 引导程序 |
+
+**步骤 3：固件命名与拷贝**
+
+编译完成后，按以下规范重命名并拷贝到共享目录：
+
+```bash
+# 示例：2026-06-09 编译的固件
+SRC_IMG="output/update/Image/update.img"
+DST_NAME="dlcvcam_rk3576_debian12_gnome_update_$(date +%Y%m%d).img"
+DST_DIR="/share/4-智能相机/0-环境安装"
+
+cp -v "$SRC_IMG" "$DST_DIR/$DST_NAME"
+ls -lh "$DST_DIR/$DST_NAME"
+```
+
+命名规范：`dlcvcam_rk3576_debian12_gnome_update_YYYYMMDD.img`
+
+### 根文件系统强制重建
+
+若需重新构建 Debian 根文件系统（如 debian12 仓库有更新）：
+
+```bash
+rm -f debian12/linaro-rk3576-gnome-rootfs.img
+./build.sh debian
+# 然后再执行 ./build.sh all 重新打包
+```
+
+> 必须先删除旧镜像，否则 `build.sh` 会直接复用缓存。
+
+### 仅更新内核的快捷流程
+
+若只修改了 kernel（设备树 / 驱动 / 配置），无需重新构建 rootfs：
+
+```bash
+./build.sh kernel
+./build.sh all
+```
+
+此时 `all` 会复用已有的 rootfs.img，仅重新编译 kernel 并打包 update.img。
+
 ---
 
 ## 烧写固件
