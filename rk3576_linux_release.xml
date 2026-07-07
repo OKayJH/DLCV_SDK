@@ -64,8 +64,8 @@
 
   <!-- ========== Tools ========== -->
   <project name="tools"
-           revision="main"
-           dest-branch="main" clone-depth="1"/>
+           revision="master"
+           dest-branch="master" clone-depth="1"/>
 
   <!-- ========== Prebuilt Toolchains ========== -->
   <project name="gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu"
