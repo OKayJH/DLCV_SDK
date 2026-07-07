@@ -126,8 +126,9 @@ make dlcvcam_rk3576_debian12_gnome_defconfig
 1. U-Boot 编译
 2. Kernel 编译（含设备树）
 3. Debian 12 根文件系统构建（如缓存不存在或已删除）
-4. 各分区镜像打包（boot.img、rootfs.img、oem.img、userdata.img 等）
-5. 生成 update.img（完整烧录固件）
+4. 智能相机 Python 环境打包成 `dlcv.img`
+5. 各分区镜像打包（boot.img、rootfs.img、oem.img、userdata.img、dlcv.img 等）
+6. 生成 update.img（完整烧录固件）
 
 **输出路径与文件**：
 
@@ -136,6 +137,7 @@ make dlcvcam_rk3576_debian12_gnome_defconfig
 | 完整固件 | `output/update/Image/update.img` | RKDevTool / SD 卡升级用的完整镜像 |
 | boot 分区 | `output/firmware/boot.img` | FIT 格式，含 kernel + dtb + resource |
 | rootfs 分区 | `output/firmware/rootfs.img` | Debian 12 GNOME 根文件系统 |
+| dlcv 分区 | `output/firmware/dlcv.img` | 智能相机 Python 环境 `/root/dlcv` 独立分区镜像 |
 | uboot 分区 | `output/firmware/uboot.img` | 引导程序 |
 
 **步骤 3：固件命名与拷贝**
@@ -154,9 +156,22 @@ ls -lh "$DST_DIR/$DST_NAME"
 
 命名规范：`dlcvcam_rk3576_debian12_gnome_update_YYYYMMDD.img`
 
+### 仅更新环境（dlcv 分区）
+
+若只更新了 `/root/dlcv` 环境包 `dlcv_env.tar.gz`，无需重建 rootfs：
+
+```bash
+cd debian12
+./mk-dlcv-part.sh
+cd ..
+./build.sh firmware
+```
+
+此路径会重新解压环境到 `dlcv_part_src/`，重打 `dlcv.img`，并重新打包 `update.img`，rootfs 复用缓存。
+
 ### 根文件系统强制重建
 
-若需重新构建 Debian 根文件系统（如 debian12 仓库有更新）：
+若需重新构建 Debian 根文件系统（如 debian12 仓库有更新、系统依赖或 overlay 变更）：
 
 ```bash
 rm -f debian12/linaro-rk3576-gnome-rootfs.img
@@ -202,9 +217,10 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | backup | 0x00068000 | 0x00010000 | — |
 | oem | 0x00078000 | 0x00040000 | `output/firmware/oem.img` |
 | userdata | 0x000B8000 | 0x00200000 | `output/firmware/userdata.img` |
-| **rootfs** | **0x002B8000** | **自动扩展** | **`output/firmware/rootfs.img`** |
+| **dlcv** | **0x002B8000** | **0x00600000** | **`output/firmware/dlcv.img`** |
+| **rootfs** | **0x008B8000** | **自动扩展** | **`output/firmware/rootfs.img`** |
 
-> 扇区大小为 512 字节。rootfs 起始地址为 **0x002B8000**。
+> 扇区大小为 512 字节。`dlcv` 分区固定 3 GiB，存放 `/root/dlcv` Python 环境；`rootfs` 起始地址为 **0x008B8000**，保持 grow 末位。
 
 ### 清理
 
