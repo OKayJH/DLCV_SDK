@@ -1,339 +1,159 @@
-# DLCV_SDK — RK3576 Linux SDK Manifest
+# OKayPi (Rockchip RK3576) 嵌入式 Linux 6.1 开发指南与全流程构建手册
 
-本仓库是 **DLCV RK3576 Linux SDK** 的 Repo 清单仓库。
+本项目为基于立创 / DLCV **OKayPi (Rockchip RK3576)** 的嵌入式 Linux 深度定制开发工程，集成 **Linux 6.1 内核（imx334 高性能图像传感器分支）**、**Debian 12 (Bookworm arm64 GNOME)** 原厂加速桌面系统，并已全量托管至个人 GitHub 账号体系。
 
 ---
 
-## 拉取 SDK
+## 目录 (Table of Contents)
+1. [硬件平台规格与芯片特性](#1-硬件平台规格与芯片特性)
+2. [远端仓库全景与新环境拉取](#2-远端仓库全景与新环境拉取)
+3. [系统身份与环境定制配置](#3-系统身份与环境定制配置)
+4. [Docker 隔离容器构建流水线](#4-docker-隔离容器构建流水线)
+5. [固件一键烧录与敏捷开发指南](#5-固件一键烧录与敏捷开发指南)
+6. [AI Agent 自动化技能 (Skill) 速查](#6-ai-agent-自动化技能-skill-速查)
 
+---
+
+## 1. 硬件平台规格与芯片特性
+
+| 模块 | 核心规格与特性 |
+| :--- | :--- |
+| **主控芯片** | Rockchip RK3576（4× Cortex-A72 @ 2.2GHz + 4× Cortex-A53 @ 1.8GHz） |
+| **NPU 算力** | 6 TOPS 强劲端侧 AI 算力，支持 INT4/INT8/INT16/FP16 混合精度 |
+| **GPU 图形** | ARM Mali-G52 MC3 图形渲染核心，支持 OpenGL ES 1.1/2.0/3.2, Vulkan 1.1/1.2, OpenCL 2.0 |
+| **VPU 编解码** | 4K @ 120fps H.264/H.265/AV1 视频硬解，4K @ 60fps H.264/H.265 视频硬编 |
+| **ISP 图像引擎** | 16M 独立 ISP 核心，支持 3DNR, HDR, 畸变矫正与超宽动态范围 |
+| **板载内存** | 4GB LPDDR4X / 8GB LPDDR4X 高速内存 |
+| **板载存储** | 32GB / 64GB 高速 eMMC 5.1 芯片 |
+| **板级系统** | Debian 12 Bookworm (arm64, Linux 6.1 内核, GNOME 桌面) |
+| **传感器配置** | IMX334 4K 超高清 CMOS 图像传感器（`kernel:imx334` 分支） |
+
+---
+
+## 2. 远端仓库全景与新环境拉取
+
+所有代码仓库均已全量镜像至个人 GitHub 账号体系（`OKayJH`），主清单默认绑定 `kernel:imx334` 分支与个人仓库：
+
+| 模块目录 | 个人仓库地址 | 默认分支 | 说明 |
+| :--- | :--- | :--- | :--- |
+| **SDK 清单主库** | `https://github.com/OKayJH/DLCV_SDK.git` | `linux` | 包含 `rk3576_linux_release.xml` |
+| **`device/`** | `https://github.com/OKayJH/device.git` | `main` | 板级 defconfig 与打包配置 |
+| **`kernel-6.1/`** | `https://github.com/OKayJH/kernel.git` | `imx334` | Linux 6.1 内核与 IMX334 驱动 |
+| **`u-boot/`** | `https://github.com/OKayJH/u-boot.git` | `rk3576` | 引导加载程序与 SPL |
+| **`rkbin/`** | `https://github.com/OKayJH/rkbin.git` | `rk3576` | 原厂闭源固件与签名打包库 |
+| **`debian12/`** | `https://github.com/OKayJH/debian12.git` | `rk3576` | Debian 12 根文件系统与定制包 |
+
+### 新电脑 / 新目录一键拉取指令：
 ```bash
-export REPO_URL='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo'
+# 1. 初始化 repo 清单（直接指向个人仓库）
 repo init -u https://github.com/OKayJH/DLCV_SDK.git -b linux -m rk3576_linux_release.xml
-repo sync -c -j4
+
+# 2. 全量并发同步所有子项目
+repo sync -c -j$(nproc)
 ```
 
 ---
 
-## 构建
+## 3. 系统身份与环境定制配置
 
-### 加载配置
+当前生成的 Debian 12 系统固件已预装并固化以下深度定制：
 
-```bash
-make dlcvcam_rk3576_debian12_gnome_defconfig
-```
-
-### 构建内核
-
-```bash
-./build.sh kernel
-```
-
-输出：
-- `kernel-6.1/arch/arm64/boot/Image`
-- `kernel-6.1/arch/arm64/boot/dts/rockchip/dlcvcam-rk3576.dtb`
-- `output/firmware/boot.img`
-
-### 构建根文件系统
-
-```bash
-rm -f debian12/linaro-rk3576-gnome-rootfs.img
-./build.sh debian
-```
-
-输出：
-- `debian12/linaro-rk3576-gnome-rootfs.img`
-- `output/firmware/rootfs.img`
-
-> 必须先删除旧镜像，否则 `build.sh` 会直接复用缓存。
-
-### 构建完整固件
-
-```bash
-./build.sh all
-```
-
-输出：
-- `output/update/Image/update.img` — 完整烧录固件
-- `output/firmware/` — 各分区镜像
-
-> **注意**：`./build.sh all` 会先检查各组件缓存。若 kernel / debian / u-boot 等已编译且未变更，会直接复用缓存。如需强制重新编译某组件，先执行对应的 `clean` 命令。
+1. **主机名 (Hostname)**：
+   - 固定为 **`OKayPi`**（底层 `dlcvcam-init.sh` 脚本已锁死，防止每次开机根据 OTP ID 改写）。
+2. **系统用户体系**：
+   - 默认普通用户：**`okay`**；
+   - 登录与 sudo 密码：**`168428`**；
+   - 权限：赋予 `sudo`, `adm`, `video`, `dialout`, `plugdev`, `netdev` 等全量权限；
+   - GDM3 桌面自动登录设置为 `okay`，强制开启 Xorg 会话以保证 x11vnc 兼容性。
+3. **免密 SSH 直连**：
+   - 固化宿主机开发公钥至 `/home/okay/.ssh/authorized_keys` 与 `/root/.ssh/authorized_keys`；
+   - 开发机可直接免密连接：`ssh okay@<OKayPi_IP>` 或 `ssh root@<OKayPi_IP>`。
+4. **桌面便捷交互**：
+   - 预设全局快捷键 **`Ctrl+Alt+T`** 唤起 `gnome-terminal`；
+   - 预配置国内清华源（`mirrors.tuna.tsinghua.edu.cn/debian`）与阿里云安全源，保证 `apt-get` 极速顺畅。
 
 ---
 
-## 智能相机环境打包文档
+## 4. Docker 隔离容器构建流水线
 
-### 环境准备
+### 4.1 架构设计
+- **完全隔离**：构建环境运行在基于 Ubuntu 22.04 LTS 的 `okaypi3576-builder:22.04` 容器中，规避宿主机高版本 GCC/Python 兼容性冲突；
+- **真实监控**：桌面中央自动弹出 **24pt 超大醒目字号原生 GTK 置顶悬浮小窗**，终端同步展示 30 格高对比度进度条，绝无虚假 Mock 进度；
+- **成功自毁**：100% 满格绿字后持续停驻 **2 秒**，让开发者明确感知结果后再优雅退出。
 
-确认交叉编译器与依赖：
-
-```bash
-which aarch64-linux-gnu-gcc
-# 确保预编译工具链存在：prebuilts/gcc/linux-x86/aarch64/
-```
-
-### 设备端环境打包（dlcv_env.tar.gz）
-
-固件构建时，`mk-bookworm-rootfs.sh` 会从共享目录提取 `dlcv_env.tar.gz` 并解压到 rootfs 的 `/root/dlcv`，作为预置 Python 环境。因此**构建固件前必须先完成设备端打包**。
-
-**打包步骤（在 170 设备上执行）**：
+### 4.2 一键构建指令速查
 
 ```bash
-# 1. 确保 smartcam_bs 已编译安装（camos + camos-admin whl 已安装到 /root/dlcv）
-# 2. 停止服务，避免运行时文件被占用
-systemctl stop camos camos-admin
+# 场景 A: 全量出厂固件构建 (从头到尾生成 update.img，包含内核、U-Boot、Debian12与DLCV分区)
+./scripts/build_full/start_build.sh all
 
-# 3. 打包 /root/dlcv 目录
-cd /root
-tar -czf /tmp/dlcv_env.tar.gz \
-  --exclude='*.pyc' \
-  --exclude='__pycache__' \
-  --exclude='.cache' \
-  --exclude='*.log' \
-  dlcv
+# 场景 B: 仅重新构建 Debian 12 根文件系统
+./scripts/build_full/start_build.sh debian
 
-ls -lh /tmp/dlcv_env.tar.gz
-```
+# 场景 C: 日常内核与驱动敏捷增量编译 (仅更新 boot.img)
+./scripts/build_full/start_build.sh kernel
 
-**拷贝到共享目录**：
+# 场景 D: 仅编译 U-Boot
+./scripts/build_full/start_build.sh uboot
 
-170 上 `/share` 通常未挂载，需通过 scp 传回 WSL：
-
-```bash
-# 在 WSL 上执行
-scp root@192.168.1.170:/tmp/dlcv_env.tar.gz /share/4-智能相机/0-环境安装/dlcv_env.tar.gz
-```
-
-> 构建脚本中的固定路径：`DLCV_ENV_TAR="/share/4-智能相机/0-环境安装/dlcv_env.tar.gz"`
-
----
-
-### 完整固件编译流程
-
-**步骤 1：加载 SDK 配置**
-
-```bash
-cd /path/to/dlcv_rk3576_sdk
-make dlcvcam_rk3576_debian12_gnome_defconfig
-```
-
-**步骤 2：编译完整固件**
-
-```bash
-./build.sh all
-```
-
-编译过程包含：
-1. U-Boot 编译
-2. Kernel 编译（含设备树）
-3. Debian 12 根文件系统构建（如缓存不存在或已删除）
-4. 智能相机 Python 环境打包成 `dlcv.img`
-5. 各分区镜像打包（boot.img、rootfs.img、oem.img、userdata.img、dlcv.img 等）
-6. 生成 update.img（完整烧录固件）
-
-**输出路径与文件**：
-
-| 文件 | 路径 | 说明 |
-|------|------|------|
-| 完整固件 | `output/update/Image/update.img` | RKDevTool / SD 卡升级用的完整镜像 |
-| boot 分区 | `output/firmware/boot.img` | FIT 格式，含 kernel + dtb + resource |
-| rootfs 分区 | `output/firmware/rootfs.img` | Debian 12 GNOME 根文件系统 |
-| dlcv 分区 | `output/firmware/dlcv.img` | 智能相机 Python 环境 `/root/dlcv` 独立分区镜像 |
-| uboot 分区 | `output/firmware/uboot.img` | 引导程序 |
-
-**步骤 3：固件命名与拷贝**
-
-编译完成后，按以下规范重命名并拷贝到共享目录：
-
-```bash
-# 示例：2026-06-09 编译的固件
-SRC_IMG="output/update/Image/update.img"
-DST_NAME="dlcvcam_rk3576_debian12_gnome_update_$(date +%Y%m%d).img"
-DST_DIR="/share/4-智能相机/0-环境安装"
-
-cp -v "$SRC_IMG" "$DST_DIR/$DST_NAME"
-ls -lh "$DST_DIR/$DST_NAME"
-```
-
-命名规范：`dlcvcam_rk3576_debian12_gnome_update_YYYYMMDD.img`
-
-### 仅更新环境（dlcv 分区）
-
-若只更新了 `/root/dlcv` 环境包 `dlcv_env.tar.gz`，无需重建 rootfs：
-
-```bash
-cd debian12
-./mk-dlcv-part.sh
-cd ..
-./build.sh firmware
-```
-
-此路径会重新解压环境到 `dlcv_part_src/`，重打 `dlcv.img`，并重新打包 `update.img`，rootfs 复用缓存。
-
-### 根文件系统强制重建
-
-若需重新构建 Debian 根文件系统（如 debian12 仓库有更新、系统依赖或 overlay 变更）：
-
-```bash
-rm -f debian12/linaro-rk3576-gnome-rootfs.img
-./build.sh debian
-# 然后再执行 ./build.sh all 重新打包
-```
-
-> 必须先删除旧镜像，否则 `build.sh` 会直接复用缓存。
-
-### 仅更新内核的快捷流程
-
-若只修改了 kernel（设备树 / 驱动 / 配置），无需重新构建 rootfs：
-
-```bash
-./build.sh kernel
-./build.sh all
-```
-
-此时 `all` 会复用已有的 rootfs.img，仅重新编译 kernel 并打包 update.img。
-
----
-
-## 烧写固件
-
-### 方式一：烧写完整固件（推荐）
-
-使用 **RKDevTool** 或 **SD 卡升级**，直接烧写 `output/update/Image/update.img`。
-
-这是最简单可靠的方式，无需关心分区表和地址。
-
-### 方式二：分区烧写
-
-若使用 RKDevTool **分区烧写**，**必须同时勾选 `parameter.txt` 和对应分区的镜像**。`parameter.txt` 定义了 GPT 分区表，不更新会导致系统无法识别分区位置和大小，从而无法启动。
-
-#### 分区地址表
-
-| 分区 | 起始地址（扇区） | 大小（扇区） | 镜像文件 |
-|------|-----------------|-------------|---------|
-| uboot | 0x00004000 | 0x00002000 | `output/firmware/uboot.img` |
-| misc | 0x00006000 | 0x00002000 | — |
-| boot | 0x00008000 | 0x00020000 | `output/firmware/boot.img` |
-| recovery | 0x00028000 | 0x00040000 | — |
-| backup | 0x00068000 | 0x00010000 | — |
-| oem | 0x00078000 | 0x00040000 | `output/firmware/oem.img` |
-| userdata | 0x000B8000 | 0x00200000 | `output/firmware/userdata.img` |
-| **dlcv** | **0x002B8000** | **0x00600000** | **`output/firmware/dlcv.img`** |
-| **rootfs** | **0x008B8000** | **自动扩展** | **`output/firmware/rootfs.img`** |
-
-> 扇区大小为 512 字节。`dlcv` 分区固定 3 GiB，存放 `/root/dlcv` Python 环境；`rootfs` 起始地址为 **0x008B8000**，保持 grow 末位。
-
-### 清理
-
-```bash
-./build.sh clean-kernel    # 仅清理内核
-./build.sh cleanall        # 清理全部
+# 场景 E: 仅重新打包已有固件为 update.img
+./scripts/build_full/start_build.sh updateimg
 ```
 
 ---
 
-## DLCV 定制说明（相较于原版 LubanCat SDK）
+## 5. 固件一键烧录与敏捷开发指南
 
-### `device`（`OKayJH/device`）
+### 5.1 硬件连接与进入烧录模式
 
-| 修改项 | 说明 |
-|--------|------|
-| 新增 defconfig | `dlcvcam_rk3576_debian12_gnome_defconfig`：DLCVCAM 专用配置 |
-| 新增 defconfig | `tspi_3m_rk3576_debian_bookworm_gnome_defconfig`：TaishanPi-3M 配置 |
+```
+[步骤 1: 物理接线]
+  • 用 Type-C 数据线连接 PC 与 OKayPi 板载【Download / OTG】接口；
+  • 接入 12V 直流电源适配器并供电。
+        │
+        ▼
+[步骤 2: 触发握手时序]
+  1. 按住板载【BOOT】(或 Maskrom/Recovery) 按键不松开；
+  2. 短按一下【RESET】复位按键；
+  3. 保持按住【BOOT】按键 2~3 秒后松开。
+        │
+        ▼
+[步骤 3: 握手成功]
+  • 宿主机识别到：Vid=0x2207, Mode=Loader 或 Maskrom。
+```
 
-### `kernel-6.1`（`OKayJH/kernel`）
+### 5.2 烧录指令速查
 
-| 修改项 | 说明 |
-|--------|------|
-| 设备树 | 新增 `dlcvcam-rk3576.dts` 及相关 `.dtsi` |
-| 相机驱动 | IMX296 支持 on-board 晶振，禁用板级 MCLK |
-| 触发功能 | 移植 RK3588 trigger-dev 外部触发到 RK3576 |
-| 风扇控制 | 三档 PWM 风扇曲线，适配 DLCVCAM 散热方案 |
-| 内核裁剪 | `dlcvcam_rk3576_kernel_cut.config` |
+统一使用 `scripts/flash_firmware/flash_firmware.sh` 脚本，基于 PTY 伪终端无缓冲输出，并自动弹出 24pt 置顶 GTK 烧录小窗：
 
-### `debian12`（`OKayJH/debian12`）
+```bash
+# 1. 出厂完整固件一键全量烧录 (默认)
+./scripts/flash_firmware/flash_firmware.sh
 
-| 修改项 | 说明 |
-|--------|------|
-| 根文件系统定制 | 集成 DLCV 智能相机环境到构建流程 |
-| 初始化脚本 | `dlcvcam-init.sh`：基于 OTP CPU ID 设置唯一主机名和 MAC 地址 |
-| 启动修复 | 修复 7zz 解压退出码导致编译中断的问题；修复 chroot 执行 shell 问题 |
-| 用户配置 | 默认用户 `dlcv`，密码 `dlcvai`；自动登录 GNOME；VNC 预配置 |
-| 工具增强 | 预装 zsh、oh-my-zsh、btop、x11vnc、gnome-terminal |
+# 2. 【3 秒极速单分区更新】仅单独烧录内核与设备树 boot 分区 (免全量刷机，重启即生效)
+./scripts/flash_firmware/flash_firmware.sh boot
 
-### `u-boot`（`OKayJH/u-boot`）
+# 3. 仅单独烧录 Debian 12 根文件系统 rootfs 分区
+./scripts/flash_firmware/flash_firmware.sh rootfs
 
-| 修改项 | 说明 |
-|--------|------|
-| 设备树 | 默认设备树改为 `rk3576-tspi` |
-| 新增 DTS | `arch/arm/dts/rk3576-tspi.dts` |
-| 启动顺序 | 调整 bootcmd：优先尝试 `bootrkp`，最后 `distro_bootcmd` |
-| eMMC 时序 | 保守时序配置，解决 u-boot 读写 eMMC 报错 |
+# 4. 仅单独烧录引导加载程序 uboot 分区
+./scripts/flash_firmware/flash_firmware.sh uboot
+
+# 5. 仅单独烧录 dlcv 专用应用分区
+./scripts/flash_firmware/flash_firmware.sh dlcv
+```
+
+### 5.3 调试串口参数
+- 波特率：**`1500000`**
+- 数据位：8，停止位：1，奇偶校验：无，流控：关闭 (1500000 8N1)
 
 ---
 
-## Manifest 说明
+## 6. AI Agent 自动化技能 (Skill) 速查
 
-### 远程仓库
+在与 AI Assistant 交互时，可直接使用以下口令唤醒对应专项技能：
 
-| 名称 | 地址 | 用途 |
-|------|------|------|
-| `lubancat` | `https://github.com/LubanCat/` | LubanCat 官方仓库（默认） |
-| `dlcv` | `https://github.com/OKayJH/` | OKayJH 个人定制仓库 |
-
-### 子仓库列表
-
-| 本地路径 | 远程仓库 | 分支 | 说明 |
-|----------|----------|------|------|
-| `DLCV_SDK` | `OKayJH/DLCV_SDK` | `linux` | 清单仓库自身 |
-| `device/rockchip` | `OKayJH/device` | `main` | 构建脚本与设备配置 |
-| `kernel-5.10` | `LubanCat/kernel` | `lbc-develop-5.10` | Linux 5.10 内核 |
-| `kernel-6.1` | `OKayJH/kernel` | `imx334` | Linux 6.1 内核（IMX334 定制） |
-| `u-boot` | `OKayJH/u-boot` | `rk3576` | U-Boot 引导程序 |
-| `rkbin` | `OKayJH/rkbin` | `rk3576` | Rockchip 固件二进制 |
-| `debian12` | `OKayJH/debian12` | `rk3576` | Debian 12 根文件系统 |
-| `tools` | `LubanCat/tools` | `main` | 烧录与打包工具 |
-| `prebuilts/gcc/...` | `LubanCat/gcc-arm-10.3...` | — | ARM 交叉编译工具链 |
-
----
-
-## 常用 Repo 命令
-
-```bash
-repo manifest -r              # 查看当前 manifest 信息
-repo status                   # 查看所有子仓库状态
-repo forall -c 'git log --oneline -5'
-repo sync kernel-6.1          # 仅同步指定仓库
-repo sync -c -j4              # 更新全部
-repo start my-feature --all   # 创建 topic 分支
-```
-
-## 开发者工作流
-
-### 单仓库修改
-
-```bash
-cd kernel-6.1
-git checkout -b dev-fix
-git add ... && git commit -m "..."
-git push dlcv dev-fix:imx334
-```
-
-### 多仓库同时修改
-
-```bash
-repo start rk3576-feature-xxx --all
-# 修改后分别 commit
-repo forall -c 'git push $(git remote | head -1) $(git branch --show-current):rk3576'
-```
-
-### 本地修改与 `repo sync` 冲突处理
-
-```bash
-repo forall -c 'git stash' && repo sync -c -j4 && repo forall -c 'git stash pop'
-# 或强制丢弃本地修改：
-# repo forall -c 'git reset --hard HEAD && git clean -fd' && repo sync -c -j4
-```
-
----
-
-Maintained by [OKayJH](https://github.com/OKayJH)
+| 触发意图 / 口令 | 唤醒技能名称 | 执行效果与能力 |
+| :--- | :--- | :--- |
+| “构建okaypi固件” / “全量构建” / “编译update.img” | [`okaypi3576-build`](file:///.agents/skills/okaypi3576-build/SKILL.md) | 自动检查 Docker 特权容器、拉起 QEMU 跨架构构建、桌面置顶 24pt GTK 真实进度弹窗，生成出厂镜像并停驻 2 秒通知 |
+| “烧录okaypi” / “刷机” / “单独烧录boot” | [`okaypi3576-flash`](file:///.agents/skills/okaypi3576-flash/SKILL.md) | 自动检测 upgrade_tool 与开发板握手、PTY 流式读盘、原生 GTK 实时烧写弹窗、烧写完成自动重启 |
