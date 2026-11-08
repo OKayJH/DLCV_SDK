@@ -3,12 +3,12 @@
   DLCV RK3576 Linux SDK Release Manifest
   Target: RK3576 TaishanPi-3 / LubanCat compatible
   Branch: linux
-  Maintained by: https://github.com/dl-cv
+  Maintained by: https://github.com/OKayJH
 -->
 <manifest>
   <!-- Remote definitions -->
   <remote name="lubancat" fetch="https://github.com/LubanCat/"/>
-  <remote name="dlcv"     fetch="https://github.com/dl-cv/"/>
+  <remote name="dlcv"     fetch="https://github.com/OKayJH/"/>
 
   <!-- Defaults -->
   <default remote="lubancat" sync-j="4"/>
@@ -49,8 +49,8 @@
 
   <project name="kernel" path="kernel-6.1"
            remote="dlcv"
-           revision="rk3576"
-           dest-branch="rk3576" clone-depth="1">
+           revision="imx334"
+           dest-branch="imx334" clone-depth="1">
     <linkfile src="." dest="kernel"/>
   </project>
 

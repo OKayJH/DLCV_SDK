@@ -8,7 +8,7 @@
 
 ```bash
 export REPO_URL='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo'
-repo init -u https://github.com/dl-cv/DLCV_SDK.git -b linux -m rk3576_linux_release.xml
+repo init -u https://github.com/OKayJH/DLCV_SDK.git -b linux -m rk3576_linux_release.xml
 repo sync -c -j4
 ```
 
@@ -233,14 +233,14 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 
 ## DLCV 定制说明（相较于原版 LubanCat SDK）
 
-### `device`（`dl-cv/device`）
+### `device`（`OKayJH/device`）
 
 | 修改项 | 说明 |
 |--------|------|
 | 新增 defconfig | `dlcvcam_rk3576_debian12_gnome_defconfig`：DLCVCAM 专用配置 |
 | 新增 defconfig | `tspi_3m_rk3576_debian_bookworm_gnome_defconfig`：TaishanPi-3M 配置 |
 
-### `kernel-6.1`（`dl-cv/kernel`）
+### `kernel-6.1`（`OKayJH/kernel`）
 
 | 修改项 | 说明 |
 |--------|------|
@@ -250,7 +250,7 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | 风扇控制 | 三档 PWM 风扇曲线，适配 DLCVCAM 散热方案 |
 | 内核裁剪 | `dlcvcam_rk3576_kernel_cut.config` |
 
-### `debian12`（`dl-cv/debian12`）
+### `debian12`（`OKayJH/debian12`）
 
 | 修改项 | 说明 |
 |--------|------|
@@ -260,7 +260,7 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | 用户配置 | 默认用户 `dlcv`，密码 `dlcvai`；自动登录 GNOME；VNC 预配置 |
 | 工具增强 | 预装 zsh、oh-my-zsh、btop、x11vnc、gnome-terminal |
 
-### `u-boot`（`dl-cv/u-boot`）
+### `u-boot`（`OKayJH/u-boot`）
 
 | 修改项 | 说明 |
 |--------|------|
@@ -278,19 +278,19 @@ rm -f debian12/linaro-rk3576-gnome-rootfs.img
 | 名称 | 地址 | 用途 |
 |------|------|------|
 | `lubancat` | `https://github.com/LubanCat/` | LubanCat 官方仓库（默认） |
-| `dlcv` | `https://github.com/dl-cv/` | DLCV 定制仓库 |
+| `dlcv` | `https://github.com/OKayJH/` | OKayJH 个人定制仓库 |
 
 ### 子仓库列表
 
 | 本地路径 | 远程仓库 | 分支 | 说明 |
 |----------|----------|------|------|
-| `DLCV_SDK` | `dl-cv/DLCV_SDK` | `linux` | 清单仓库自身 |
-| `device/rockchip` | `dl-cv/device` | `main` | 构建脚本与设备配置 |
+| `DLCV_SDK` | `OKayJH/DLCV_SDK` | `linux` | 清单仓库自身 |
+| `device/rockchip` | `OKayJH/device` | `main` | 构建脚本与设备配置 |
 | `kernel-5.10` | `LubanCat/kernel` | `lbc-develop-5.10` | Linux 5.10 内核 |
-| `kernel-6.1` | `dl-cv/kernel` | `rk3576` | Linux 6.1 内核（RK3576 定制） |
-| `u-boot` | `dl-cv/u-boot` | `rk3576` | U-Boot 引导程序 |
-| `rkbin` | `dl-cv/rkbin` | `rk3576` | Rockchip 固件二进制 |
-| `debian12` | `dl-cv/debian12` | `rk3576` | Debian 12 根文件系统 |
+| `kernel-6.1` | `OKayJH/kernel` | `imx334` | Linux 6.1 内核（IMX334 定制） |
+| `u-boot` | `OKayJH/u-boot` | `rk3576` | U-Boot 引导程序 |
+| `rkbin` | `OKayJH/rkbin` | `rk3576` | Rockchip 固件二进制 |
+| `debian12` | `OKayJH/debian12` | `rk3576` | Debian 12 根文件系统 |
 | `tools` | `LubanCat/tools` | `main` | 烧录与打包工具 |
 | `prebuilts/gcc/...` | `LubanCat/gcc-arm-10.3...` | — | ARM 交叉编译工具链 |
 
@@ -315,7 +315,7 @@ repo start my-feature --all   # 创建 topic 分支
 cd kernel-6.1
 git checkout -b dev-fix
 git add ... && git commit -m "..."
-git push dlcv dev-fix:rk3576
+git push dlcv dev-fix:imx334
 ```
 
 ### 多仓库同时修改
@@ -336,4 +336,4 @@ repo forall -c 'git stash' && repo sync -c -j4 && repo forall -c 'git stash pop'
 
 ---
 
-Maintained by [dl-cv](https://github.com/dl-cv)
+Maintained by [OKayJH](https://github.com/OKayJH)
