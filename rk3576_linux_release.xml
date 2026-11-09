@@ -24,8 +24,8 @@
   <!-- ========== BSP Core ========== -->
   <project name="device" path="device/rockchip"
            remote="dlcv"
-           revision="main"
-           dest-branch="main" clone-depth="1">
+           revision="imx334"
+           dest-branch="imx334" clone-depth="1">
     <linkfile src="common/scripts/build.sh" dest="build.sh"/>
     <linkfile src="common/Makefile"         dest="Makefile"/>
     <linkfile src="common/scripts/rkflash.sh" dest="rkflash.sh"/>
@@ -57,8 +57,8 @@
   <!-- ========== Rootfs / Distro ========== -->
   <project name="debian12"
            remote="dlcv"
-           revision="rk3576"
-           dest-branch="rk3576" clone-depth="1"/>
+           revision="imx334"
+           dest-branch="imx334" clone-depth="1"/>
 
 
 
